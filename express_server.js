@@ -51,15 +51,15 @@ const urlDatabase = {
 app.get("/urls", (req, res) => {
   const templateVars = {
     urls: urlDatabase,
-    username: req.cookies["username"]
+    username: req.cookies["username"],
   };
   res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
   const templateVars = {
-    username: req.cookies["username"]
-  }
+    username: req.cookies["username"],
+  };
   res.render("urls_new", templateVars);
 });
 
@@ -79,8 +79,8 @@ app.get("/urls/:id", (req, res) => {
 
 app.get("/error", (req, res) => {
   const templateVars = {
-    username: req.cookies["username"]
-  }
+    username: req.cookies["username"],
+  };
   res.render("urls_error", templateVars);
 });
 
@@ -105,7 +105,6 @@ app.post("/urls/:id/delete", (req, res) => {
 app.post("/urls/:id", (req, res) => {
   const id = req.params.id;
   res.redirect(`/urls/${id}`);
-  console.log("hi");
 });
 
 app.post("/urls/:id/edit", (req, res) => {
@@ -122,9 +121,9 @@ app.post("/login", (req, res) => {
 });
 
 app.post("/logout", (req, res) => {
-  res.clearCookie("username")
-  res.redirect("/urls")
-})
+  res.clearCookie("username");
+  res.redirect("/urls");
+});
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Listener
