@@ -90,6 +90,21 @@ app.post("/urls/:id/delete", (req, res) => {
   res.redirect(`/urls`);
 });
 
+app.post("/urls/:id", (req, res) => {
+  const id = req.params.id;
+  res.redirect(`/urls/${id}`);
+  console.log("hi");
+});
+
+app.post("/urls/:id/edit", (req, res) => {
+  const id = req.params.id;
+  const newURL = req.body.newURL;
+  console.log(id);
+  console.log(newURL);
+  urlDatabase[id] = newURL;
+  res.redirect(`/urls`);
+});
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Listener
 ////////////////////////////////////////////////////////////////////////////////////////////////////
