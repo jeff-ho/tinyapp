@@ -1,11 +1,11 @@
 const express = require("express");
 
-const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-
-function generateRandomString(charLength) {
-  let result = '';
+function generateRandomString() {
+  let result = "";
+  const chars =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   let length = chars.length;
-  for (let i = 0 ; i < charLength ; i++) {
+  for (let i = 0; i < 6; i++) {
     result += chars.charAt(Math.floor(Math.random() * length));
   }
   return result;
@@ -19,15 +19,11 @@ const app = express();
 const PORT = 8080;
 app.set("view engine", "ejs");
 
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Middleware
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 app.use(express.urlencoded({ extended: true }));
-
-
-
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Routes
@@ -38,17 +34,17 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com",
 };
 
-app.get("/", (req, res) => {
-  res.send("Hello!");
-});
+// app.get("/", (req, res) => {
+//   res.send("Hello!");
+// });
 
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
-});
+// app.get("/urls.json", (req, res) => {
+//   res.json(urlDatabase);
+// });
 
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
-});
+// app.get("/hello", (req, res) => {
+//   res.send("<html><body>Hello <b>World</b></body></html>\n");
+// });
 
 app.get("/urls", (req, res) => {
   const templateVars = { urls: urlDatabase };
@@ -64,12 +60,28 @@ app.get("/urls/:id", (req, res) => {
     id: req.params.id,
     longURL: urlDatabase[req.params.id],
   };
-  res.render("urls_show", templateVars);
+
+  if (!templateVars.longURL) {
+    res.redirect("/error");
+  } else {
+    res.render("urls_show", templateVars);
+  }
+});
+
+app.get("/error", (req, res) => {
+  res.render("urls_error");
 });
 
 app.post("/urls", (req, res) => {
-  console.log(req.body); // Log the POST request body to the console
-  res.send("Ok"); // Respond with 'Ok' (we will replace this)
+  let code = generateRandomString();
+  urlDatabase[code] = req.body.longURL;
+  console.log(urlDatabase);
+  res.redirect(`/urls/${code}`);
+});
+
+app.get("/u/:id", (req, res) => {
+  const longURL = urlDatabase[req.params.id];
+  res.redirect(longURL);
 });
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
