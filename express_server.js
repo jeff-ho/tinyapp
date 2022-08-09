@@ -106,7 +106,9 @@ app.post("/urls/:id/edit", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  console.log('hi')
+  const user = req.body.username;
+  res.cookie("loginID", user);
+  res.redirect("/urls");
 });
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
