@@ -49,16 +49,23 @@ const urlDatabase = {
 // });
 
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase };
+  const templateVars = {
+    urls: urlDatabase,
+    username: req.cookies["username"]
+  };
   res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  const templateVars = {
+    username: req.cookies["username"]
+  }
+  res.render("urls_new", templateVars);
 });
 
 app.get("/urls/:id", (req, res) => {
   const templateVars = {
+    username: req.cookies["username"],
     id: req.params.id,
     longURL: urlDatabase[req.params.id],
   };
@@ -71,7 +78,10 @@ app.get("/urls/:id", (req, res) => {
 });
 
 app.get("/error", (req, res) => {
-  res.render("urls_error");
+  const templateVars = {
+    username: req.cookies["username"]
+  }
+  res.render("urls_error", templateVars);
 });
 
 app.post("/urls", (req, res) => {
@@ -107,9 +117,14 @@ app.post("/urls/:id/edit", (req, res) => {
 
 app.post("/login", (req, res) => {
   const user = req.body.username;
-  res.cookie("loginID", user);
+  res.cookie("username", user);
   res.redirect("/urls");
 });
+
+app.post("/logout", (req, res) => {
+  res.clearCookie("username")
+  res.redirect("/urls")
+})
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Listener
