@@ -1,4 +1,5 @@
 const express = require("express");
+const cookieParser = require("cookie-parser");
 
 function generateRandomString() {
   let result = "";
@@ -24,6 +25,7 @@ app.set("view engine", "ejs");
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Routes
@@ -99,10 +101,12 @@ app.post("/urls/:id", (req, res) => {
 app.post("/urls/:id/edit", (req, res) => {
   const id = req.params.id;
   const newURL = req.body.newURL;
-  console.log(id);
-  console.log(newURL);
   urlDatabase[id] = newURL;
   res.redirect(`/urls`);
+});
+
+app.post("/login", (req, res) => {
+  console.log('hi')
 });
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
