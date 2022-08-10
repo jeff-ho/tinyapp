@@ -1,5 +1,6 @@
 const express = require("express");
 const cookieParser = require("cookie-parser");
+const morgan = require("morgan");
 
 function generateRandomString() {
   let result = "";
@@ -26,6 +27,7 @@ app.set("view engine", "ejs");
 
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(morgan("dev"));
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Routes
@@ -61,8 +63,10 @@ app.get("/urls/:id", (req, res) => {
 
   if (!templateVars.longURL) {
     res.redirect("/error");
+    return;
   } else {
     res.render("urls_show", templateVars);
+    return;
   }
 });
 
@@ -113,6 +117,19 @@ app.post("/logout", (req, res) => {
   res.clearCookie("username");
   res.redirect("/urls");
 });
+
+app.get("/register", (req, res) => {
+const templateVars= {
+  username: req.cookies["username"]
+}
+res.render("urls_register", templateVars)
+});
+
+// app.post("/register", (req, res) =>{
+//   console.log(req.body)
+//   res.redirect("/urls")
+// });
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Listener
