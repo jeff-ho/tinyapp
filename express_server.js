@@ -132,16 +132,45 @@ app.post("/urls/:id/edit", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  const user = req.body.username;
-  res.redirect("/urls");
+  console.log('password', req.body.email)
+   const e_mail = req.body.email;
+   const givenPassword = req.body.password;
+  
+  if (findUser(e_mail) === null) {
+    res.send("Please register");
+    return;
+  }
+  const password = findUser(e_mail).password;
+  const id = findUser(e_mail).id;
+  if (findUser(e_mail)) {
+    if (givenPassword !== password) {
+      res.send("Wrong Password");
+      return;
+    }
+   }
+  if (findUser(e_mail) && givenPassword === password) {
+    res.cookie("user_id", id);
+    res.redirect("/urls");
+  }
+});
+
+app.get("/login", (req, res) => {
+  const templateVars = {
+    user: users[req.cookies.user_id],
+  };
+  res.render("urls_login", templateVars);
 });
 
 app.post("/logout", (req, res) => {
-  res.redirect("/urls");
+  res.clearCookie("user_id")
+  res.redirect("/login");
 });
 
 app.get("/register", (req, res) => {
-  res.render("urls_register");
+  const templateVars = {
+    user: users[req.cookies.user_id],
+  };
+  res.render("urls_register", templateVars);
 });
 
 app.post("/register", (req, res) => {
@@ -155,7 +184,6 @@ app.post("/register", (req, res) => {
     res.send("Please enter a valid email/password!");
     return;
   }
-
   if (findUser(e_mail)) {
     res.send("Email Already Exists");
     return;

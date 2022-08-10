@@ -19,7 +19,15 @@
       </div>
     </div>
     <div style="display:flex; align-items: inherit">
-        <p1 style="font-size:x-large;">Logged in as: <%= user.email %>!</p1>
+      <% if(user){ %>
+        <p style="font-size:x-large; padding-top: 15px;">Logged in as <%= user.email %>! </p>
+        <form method="POST" action="/logout">
+          <button type="submit" class="btn btn-dark" style="height: 45px; width: 150px; margin-left: 20px;" >Logout</button>
+        </form>
+      <% } else{ %>  
+        <a href="/login" style="color:antiquewhite; margin-right: 9px;">Log In</a>
+        <a href="/register" style="color:antiquewhite">Register</a>
+     <% } %>
     </div>
   </nav>
 </header>
