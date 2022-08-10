@@ -42,9 +42,8 @@ app.use(cookieParser());
 app.use(morgan("dev"));
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-// Routes
+// Databases
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-
 const urlDatabase = {
   b2xVn2: "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com",
@@ -62,6 +61,9 @@ const users = {
     password: "dishwasher-funk",
   },
 };
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Routes
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 app.get("/urls", (req, res) => {
   const templateVars = {
@@ -132,10 +134,10 @@ app.post("/urls/:id/edit", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  console.log('password', req.body.email)
-   const e_mail = req.body.email;
-   const givenPassword = req.body.password;
-  
+  console.log("password", req.body.email);
+  const e_mail = req.body.email;
+  const givenPassword = req.body.password;
+
   if (findUser(e_mail) === null) {
     res.send("Please register");
     return;
@@ -147,7 +149,7 @@ app.post("/login", (req, res) => {
       res.send("Wrong Password");
       return;
     }
-   }
+  }
   if (findUser(e_mail) && givenPassword === password) {
     res.cookie("user_id", id);
     res.redirect("/urls");
@@ -158,11 +160,17 @@ app.get("/login", (req, res) => {
   const templateVars = {
     user: users[req.cookies.user_id],
   };
-  res.render("urls_login", templateVars);
+  const user = users[req.cookies.user_id];
+
+  if (user) {
+    return res.redirect("/urls");
+  } else {
+    res.render("urls_login", templateVars);
+  }
 });
 
 app.post("/logout", (req, res) => {
-  res.clearCookie("user_id")
+  res.clearCookie("user_id");
   res.redirect("/login");
 });
 
@@ -170,7 +178,12 @@ app.get("/register", (req, res) => {
   const templateVars = {
     user: users[req.cookies.user_id],
   };
-  res.render("urls_register", templateVars);
+  const user = users[req.cookies.user_id];
+  if (user) {
+    return res.redirect("/urls");
+  } else {
+    res.render("urls_register", templateVars);
+  }
 });
 
 app.post("/register", (req, res) => {
