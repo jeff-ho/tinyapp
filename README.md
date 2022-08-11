@@ -10,4 +10,30 @@ The Tiny App project is a full stack web application that functions as a URL sho
 <img width="1748" alt="Screen Shot 2022-08-11 at 4 01 02 PM" src="https://user-images.githubusercontent.com/55267263/184229630-e836e60f-4b46-43f2-bb3e-422b08a00977.png">
 
 
-The app is built with Node.js, Express framework, EJS as the template engine and a minimal amount of CSS styling. The app uses bcryptjs for password encryption and cookie session for secure cookie usage. 
+# Dependencies
+
+-EJS
+
+-Express
+
+-Node.js
+
+-bycrypt
+
+-cookie-session
+
+# Getting Started
+
+-Fork the repository and git clone onto your local device.
+
+-Install all app dependencies using:
+
+```
+npm install
+```
+
+-Run the web application using the following command: 
+
+```
+node express_server.js
+```
