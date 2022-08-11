@@ -1,6 +1,11 @@
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const morgan = require("morgan");
+const bcrypt = require("bcryptjs");
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Helper Functions
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function generateRandomString() {
   let result = "";
@@ -202,6 +207,7 @@ app.post("/urls/:id/edit", (req, res) => {
   res.redirect(`/urls`);
 });
 
+//Login comparing hashed passwords
 app.post("/login", (req, res) => {
   console.log("password", req.body.email);
   const e_mail = req.body.email;
@@ -211,20 +217,22 @@ app.post("/login", (req, res) => {
     res.send("Please register");
     return;
   }
-  const password = findUser(e_mail).password;
+  const hashedPassword = findUser(e_mail).password;
+  const comparePassword = bcrypt.compareSync(givenPassword, hashedPassword)
   const id = findUser(e_mail).id;
-  if (findUser(e_mail)) {
-    if (givenPassword !== password) {
+
+  if (findUser(e_mail) && !comparePassword) {
       res.send("Wrong Password");
       return;
-    }
   }
-  if (findUser(e_mail) && givenPassword === password) {
+
+  if (findUser(e_mail) && comparePassword) {
     res.cookie("user_id", id);
     res.redirect("/urls");
   }
 });
 
+//Login page render
 app.get("/login", (req, res) => {
   const templateVars = {
     user: users[req.cookies.user_id],
@@ -238,6 +246,7 @@ app.get("/login", (req, res) => {
   }
 });
 
+// Logout clearing cookie + redirect to login page
 app.post("/logout", (req, res) => {
   res.clearCookie("user_id");
   console.log("Current Users",users);
@@ -245,6 +254,7 @@ app.post("/logout", (req, res) => {
   res.redirect("/login");
 });
 
+//Renders register page with redirect to urls if logged in
 app.get("/register", (req, res) => {
   const templateVars = {
     user: users[req.cookies.user_id],
@@ -257,11 +267,12 @@ app.get("/register", (req, res) => {
   }
 });
 
+// Register logic with error routing. If successful routes to urls and adds to user database.
 app.post("/register", (req, res) => {
   const randomID = generateRandomString();
   const e_mail = req.body.email;
   const password = req.body.password;
-  //const user = users[req.cookies.user_id];
+  const hashedPassword = bcrypt.hashSync(password, 10);
 
   if (!e_mail || !password) {
     console.log("USER no pass", users);
@@ -272,7 +283,7 @@ app.post("/register", (req, res) => {
     res.send("Email Already Exists");
     return;
   }
-  users[randomID] = { id: randomID, email: e_mail, password: password };
+  users[randomID] = { id: randomID, email: e_mail, password: hashedPassword };
   res.cookie("user_id", randomID);
   console.log("New Users List", users);
   return res.redirect("/urls");
