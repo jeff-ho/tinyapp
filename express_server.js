@@ -55,10 +55,12 @@ const users = {
     password: "dishwasher-funk",
   },
 };
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Routes
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// Renders list of user URLS based on user
 app.get("/urls", (req, res) => {
   const templateVars = {
     urls: urlsForUser(req.session.user_id, urlDatabase),
@@ -72,6 +74,7 @@ app.get("/urls", (req, res) => {
   }
 });
 
+//Renders form for new url submission
 app.get("/urls/new", (req, res) => {
   const templateVars = {
     user: users[req.session.user_id],
@@ -84,11 +87,11 @@ app.get("/urls/new", (req, res) => {
   }
 });
 
+//Renders the url editing page with user protection
 app.get("/urls/:id", (req, res) => {
   const user = users[req.session.user_id];
   const id = req.params.id;
   const url = urlDatabase[id];
-  console.log("users", users);
   if (!user) {
     return res.send("ERROR! PLEASE LOG IN!");
   }
@@ -109,6 +112,7 @@ app.get("/urls/:id", (req, res) => {
   return res.render("urls_show", templateVars);
 });
 
+//Generates a new code for long URL with redirect to urls/:id
 app.post("/urls", (req, res) => {
   let code = generateRandomString();
   const user = users[req.session.user_id];
@@ -116,7 +120,6 @@ app.post("/urls", (req, res) => {
     longURL: req.body.longURL,
     userID: req.session.user_id,
   };
-  console.log("After adding:", urlDatabase);
 
   if (!user) {
     return res.send("You cannot shorten URLS because you are not logged in!");
@@ -125,6 +128,7 @@ app.post("/urls", (req, res) => {
   }
 });
 
+//Redirects to the actual long URL website
 app.get("/u/:id", (req, res) => {
   const id = req.params.id;
   if (!urlDatabase[id]) {
@@ -135,6 +139,7 @@ app.get("/u/:id", (req, res) => {
   }
 });
 
+// Deletes specific urls with user protection with redirect back to url list
 app.post("/urls/:id/delete", (req, res) => {
   const id = req.params.id;
   const user = users[req.session.user_id];
@@ -156,10 +161,10 @@ app.post("/urls/:id/delete", (req, res) => {
   }
 
   delete urlDatabase[id];
-  console.log("After Delete:", urlDatabase);
   res.redirect(`/urls`);
 });
 
+//Editing specific URL with user protection and redirect to urls new if safe
 app.post("/urls/:id", (req, res) => {
   const id = req.params.id;
   const user = users[req.session.user_id];
@@ -180,6 +185,7 @@ app.post("/urls/:id", (req, res) => {
   res.redirect(`/urls/${id}`);
 });
 
+//Edits the old URL into the new one
 app.post("/urls/:id/edit", (req, res) => {
   const id = req.params.id;
   const newURL = req.body.newURL;
@@ -189,12 +195,11 @@ app.post("/urls/:id/edit", (req, res) => {
 
 //Login comparing hashed passwords
 app.post("/login", (req, res) => {
-  console.log("password", req.body.email);
   const e_mail = req.body.email;
   const givenPassword = req.body.password;
 
   if (findUser(e_mail, users) === null) {
-    res.send("Please register");
+    res.status(404).send("Please Register");
     return;
   }
   const hashedPassword = findUser(e_mail, users).password;
@@ -229,10 +234,7 @@ app.get("/login", (req, res) => {
 
 // Logout clearing cookie + redirect to login page
 app.post("/logout", (req, res) => {
-  //res.clearCookie("user_id");
   req.session = null;
-  console.log("Current Users", users);
-  console.log("Current URL Database:", urlDatabase);
   res.redirect("/login");
 });
 
@@ -257,18 +259,15 @@ app.post("/register", (req, res) => {
   const hashedPassword = bcrypt.hashSync(password, 10);
 
   if (!e_mail || !password) {
-    console.log("USER no pass", users);
-    res.send("Please enter a valid email/password!");
+    res.status(400).send("Please Enter A Valid Email/Password!");
     return;
   }
   if (findUser(e_mail, users)) {
-    res.send("Email Already Exists");
+    res.status(400).send("Email Already Exists!");
     return;
   }
   users[randomID] = { id: randomID, email: e_mail, password: hashedPassword };
-  //res.cookie("user_id", randomID);
   req.session.user_id = randomID;
-  console.log("New Users List", users);
   return res.redirect("/urls");
 });
 
