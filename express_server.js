@@ -119,12 +119,10 @@ app.get("/urls/:id", (req, res) => {
   }
 
   if (!url) {
-    console.log("ID DOES NOT EXIST");
     return res.send("ID DOES NOT EXIST");
   }
 
   if (user.id !== url.userID) {
-    console.log("NO PERMISSION");
     return res.send("NO PERMISSION");
   }
 
@@ -143,8 +141,7 @@ app.post("/urls", (req, res) => {
     longURL: req.body.longURL,
     userID: req.cookies.user_id,
   };
-  console.log(urlDatabase);
-  console.log(req.cookies.user_id);
+  console.log("After adding:",urlDatabase);
 
   if (!user) {
     return res.send("You cannot shorten URLS because you are not logged in!");
@@ -169,7 +166,8 @@ app.post("/urls/:id/delete", (req, res) => {
   const url = urlDatabase[id];
 
   if (!user) {
-    return res.send("You are not logged in");
+    console.log("YOU ARE NOT LOGGED IN")
+    return res.send("YOU ARE NOT LOGGED IN");
   }
 
   if (!url) {
@@ -183,14 +181,13 @@ app.post("/urls/:id/delete", (req, res) => {
   }
 
   delete urlDatabase[id];
-  console.log(urlDatabase);
+  console.log("After Delete:", urlDatabase);
   res.redirect(`/urls`);
 });
 
 app.post("/urls/:id", (req, res) => {
   const id = req.params.id;
   const user = users[req.cookies.user_id];
-  console.log(users);
   if (!user) {
     console.log("error");
     return res.send("Error Log In Please");
@@ -243,8 +240,8 @@ app.get("/login", (req, res) => {
 
 app.post("/logout", (req, res) => {
   res.clearCookie("user_id");
-  console.log(users);
-  console.log(urlDatabase);
+  console.log("Current Users",users);
+  console.log("Current URL Database:",urlDatabase);
   res.redirect("/login");
 });
 
@@ -264,7 +261,7 @@ app.post("/register", (req, res) => {
   const randomID = generateRandomString();
   const e_mail = req.body.email;
   const password = req.body.password;
-  const user = users[req.cookies.user_id];
+  //const user = users[req.cookies.user_id];
 
   if (!e_mail || !password) {
     console.log("USER no pass", users);
