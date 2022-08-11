@@ -189,7 +189,7 @@ app.post("/urls/:id", (req, res) => {
   const id = req.params.id;
   const user = users[req.cookies.user_id];
   if (!user) {
-    console.log("error");
+    console.log("Error Please Log In");
     return res.send("Error Log In Please");
   }
   res.redirect(`/urls/${id}`);
@@ -274,7 +274,7 @@ app.post("/register", (req, res) => {
   }
   users[randomID] = { id: randomID, email: e_mail, password: password };
   res.cookie("user_id", randomID);
-  console.log("users good", users);
+  console.log("New Users List", users);
   return res.redirect("/urls");
 });
 
