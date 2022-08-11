@@ -56,10 +56,6 @@ app.use(morgan("dev"));
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Databases
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-// const urlDatabase = {
-//   b2xVn2: "http://www.lighthouselabs.ca",
-//   "9sm5xK": "http://www.google.com",
-// };
 
 const urlDatabase = {
   b6UTxQ: {
@@ -116,13 +112,20 @@ app.get("/urls/new", (req, res) => {
 app.get("/urls/:id", (req, res) => {
   const user = users[req.cookies.user_id];
   const id = req.params.id;
-
+  const url = urlDatabase[id];
+  console.log("users", users);
   if (!user) {
     return res.send("ERROR! PLEASE LOG IN!");
   }
 
-  if (req.cookies.user_id !== urlDatabase[id].userID) {
-    res.send("YOU DO NOT OWN THE URL!");
+  if (!url) {
+    console.log("ID DOES NOT EXIST");
+    return res.send("ID DOES NOT EXIST");
+  }
+
+  if (user.id !== url.userID) {
+    console.log("NO PERMISSION");
+    return res.send("NO PERMISSION");
   }
 
   const templateVars = {
@@ -141,6 +144,7 @@ app.post("/urls", (req, res) => {
     userID: req.cookies.user_id,
   };
   console.log(urlDatabase);
+  console.log(req.cookies.user_id);
 
   if (!user) {
     return res.send("You cannot shorten URLS because you are not logged in!");
@@ -162,9 +166,20 @@ app.get("/u/:id", (req, res) => {
 app.post("/urls/:id/delete", (req, res) => {
   const id = req.params.id;
   const user = users[req.cookies.user_id];
+  const url = urlDatabase[id];
 
   if (!user) {
     return res.send("You are not logged in");
+  }
+
+  if (!url) {
+    console.log("ID DOES NOT EXIST");
+    return res.send("ID DOES NOT EXIST");
+  }
+
+  if (user !== url.userID) {
+    console.log("NO PERMISSION");
+    return res.send("NO PERMISSION");
   }
 
   delete urlDatabase[id];
@@ -175,6 +190,7 @@ app.post("/urls/:id/delete", (req, res) => {
 app.post("/urls/:id", (req, res) => {
   const id = req.params.id;
   const user = users[req.cookies.user_id];
+  console.log(users);
   if (!user) {
     console.log("error");
     return res.send("Error Log In Please");
