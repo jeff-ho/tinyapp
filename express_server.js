@@ -25,6 +25,18 @@ function findUser(email) {
   return result;
 }
 
+function urlsForUser(id) {
+  let result = {};
+  for (const url in urlDatabase) {
+    let userID = urlDatabase[url].userID;
+    let longURL = urlDatabase[url].longURL;
+    if (id === userID) {
+      result[url] = { longURL: longURL, userID: userID };
+    }
+  }
+  return result;
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Configuration
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -78,10 +90,15 @@ const users = {
 
 app.get("/urls", (req, res) => {
   const templateVars = {
-    urls: urlDatabase,
+    urls: urlsForUser(req.cookies.user_id),
     user: users[req.cookies.user_id],
   };
-  res.render("urls_index", templateVars);
+  const user = users[req.cookies.user_id];
+  if (!user) {
+    return res.send("NO PERMISSION PLEASE LOG IN OR REGISTER FIRST");
+  } else {
+    res.render("urls_index", templateVars);
+  }
 });
 
 app.get("/urls/new", (req, res) => {
@@ -97,57 +114,71 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:id", (req, res) => {
+  const user = users[req.cookies.user_id];
+  const id = req.params.id;
+
+  if (!user) {
+    return res.send("ERROR! PLEASE LOG IN!");
+  }
+
+  if (req.cookies.user_id !== urlDatabase[id].userID) {
+    res.send("YOU DO NOT OWN THE URL!");
+  }
+
   const templateVars = {
     user: users[req.cookies.user_id],
     id: req.params.id,
-    longURL: urlDatabase[req.params.id].longURL
+    longURL: urlDatabase[req.params.id].longURL,
   };
-
-  if (!templateVars.longURL) {
-     return res.send("error");
-    return;
-  } else {
-    res.render("urls_show", templateVars);
-    return;
-  }
+  return res.render("urls_show", templateVars);
 });
 
 app.post("/urls", (req, res) => {
   let code = generateRandomString();
   const user = users[req.cookies.user_id];
   urlDatabase[code] = {
-    "longURL":req.body.longURL,
-    "userID":req.cookies.user_id
-};
+    longURL: req.body.longURL,
+    userID: req.cookies.user_id,
+  };
   console.log(urlDatabase);
 
   if (!user) {
-    return res.send("You cannot shorten URLS because you are not logged in!")
+    return res.send("You cannot shorten URLS because you are not logged in!");
   } else {
     res.redirect(`/urls/${code}`);
   }
 });
 
-
 app.get("/u/:id", (req, res) => {
-  const id = req.params.id
+  const id = req.params.id;
   if (!urlDatabase[id]) {
-    return res.send("THIS ID DOES NOT EXIST")
+    return res.send("THIS ID DOES NOT EXIST");
   } else {
-    const longURL = urlDatabase[req.params.id].longURL
+    const longURL = urlDatabase[req.params.id].longURL;
     res.redirect(longURL);
   }
 });
 
 app.post("/urls/:id/delete", (req, res) => {
   const id = req.params.id;
+  const user = users[req.cookies.user_id];
+
+  if (!user) {
+    return res.send("You are not logged in");
+  }
+
   delete urlDatabase[id];
-  console.log(urlDatabase)
+  console.log(urlDatabase);
   res.redirect(`/urls`);
 });
 
 app.post("/urls/:id", (req, res) => {
   const id = req.params.id;
+  const user = users[req.cookies.user_id];
+  if (!user) {
+    console.log("error");
+    return res.send("Error Log In Please");
+  }
   res.redirect(`/urls/${id}`);
 });
 
@@ -196,6 +227,8 @@ app.get("/login", (req, res) => {
 
 app.post("/logout", (req, res) => {
   res.clearCookie("user_id");
+  console.log(users);
+  console.log(urlDatabase);
   res.redirect("/login");
 });
 
