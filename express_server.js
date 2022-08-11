@@ -1,47 +1,8 @@
 const express = require("express");
-// const cookieParser = require("cookie-parser");
 const morgan = require("morgan");
 const bcrypt = require("bcryptjs");
-const cookieSession = require('cookie-session');
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// Helper Functions
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-function generateRandomString() {
-  let result = "";
-  const chars =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  let length = chars.length;
-  for (let i = 0; i < 6; i++) {
-    result += chars.charAt(Math.floor(Math.random() * length));
-  }
-  return result;
-}
-
-function findUser(email) {
-  let result;
-  for (const user in users) {
-    if (users[user].email === email) {
-      return users[user];
-    } else {
-      result = null;
-    }
-  }
-  return result;
-}
-
-function urlsForUser(id) {
-  let result = {};
-  for (const url in urlDatabase) {
-    let userID = urlDatabase[url].userID;
-    let longURL = urlDatabase[url].longURL;
-    if (id === userID) {
-      result[url] = { longURL: longURL, userID: userID };
-    }
-  }
-  return result;
-}
+const cookieSession = require("cookie-session");
+const { findUser, generateRandomString, urlsForUser } = require("./helpers");
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Configuration
@@ -56,15 +17,16 @@ app.set("view engine", "ejs");
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 app.use(express.urlencoded({ extended: true }));
-// app.use(cookieParser());
 app.use(morgan("dev"));
-app.use(cookieSession({
-  name: 'session',
-  keys: ["hello"],
+app.use(
+  cookieSession({
+    name: "session",
+    keys: ["hello"],
 
-  // Cookie Options
-  maxAge: 24 * 60 * 60 * 1000 // 24 hours
-}))
+    // Cookie Options
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+  })
+);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Databases
@@ -99,7 +61,7 @@ const users = {
 
 app.get("/urls", (req, res) => {
   const templateVars = {
-    urls: urlsForUser(req.session.user_id),
+    urls: urlsForUser(req.session.user_id, urlDatabase),
     user: users[req.session.user_id],
   };
   const user = users[req.session.user_id];
@@ -154,7 +116,7 @@ app.post("/urls", (req, res) => {
     longURL: req.body.longURL,
     userID: req.session.user_id,
   };
-  console.log("After adding:",urlDatabase);
+  console.log("After adding:", urlDatabase);
 
   if (!user) {
     return res.send("You cannot shorten URLS because you are not logged in!");
@@ -179,7 +141,7 @@ app.post("/urls/:id/delete", (req, res) => {
   const url = urlDatabase[id];
 
   if (!user) {
-    console.log("YOU ARE NOT LOGGED IN")
+    console.log("YOU ARE NOT LOGGED IN");
     return res.send("YOU ARE NOT LOGGED IN");
   }
 
@@ -231,22 +193,22 @@ app.post("/login", (req, res) => {
   const e_mail = req.body.email;
   const givenPassword = req.body.password;
 
-  if (findUser(e_mail) === null) {
+  if (findUser(e_mail, users) === null) {
     res.send("Please register");
     return;
   }
-  const hashedPassword = findUser(e_mail).password;
-  const comparePassword = bcrypt.compareSync(givenPassword, hashedPassword)
-  const id = findUser(e_mail).id;
+  const hashedPassword = findUser(e_mail, users).password;
+  const comparePassword = bcrypt.compareSync(givenPassword, hashedPassword);
+  const id = findUser(e_mail, users).id;
 
-  if (findUser(e_mail) && !comparePassword) {
-      res.send("Wrong Password");
-      return;
+  if (findUser(e_mail, users) && !comparePassword) {
+    res.send("Wrong Password");
+    return;
   }
 
-  if (findUser(e_mail) && comparePassword) {
+  if (findUser(e_mail, users) && comparePassword) {
     //res.cookie("user_id", id);
-    req.session.user_id = id
+    req.session.user_id = id;
     res.redirect("/urls");
   }
 });
@@ -268,9 +230,9 @@ app.get("/login", (req, res) => {
 // Logout clearing cookie + redirect to login page
 app.post("/logout", (req, res) => {
   //res.clearCookie("user_id");
-  req.session = null
-  console.log("Current Users",users);
-  console.log("Current URL Database:",urlDatabase);
+  req.session = null;
+  console.log("Current Users", users);
+  console.log("Current URL Database:", urlDatabase);
   res.redirect("/login");
 });
 
@@ -299,7 +261,7 @@ app.post("/register", (req, res) => {
     res.send("Please enter a valid email/password!");
     return;
   }
-  if (findUser(e_mail)) {
+  if (findUser(e_mail, users)) {
     res.send("Email Already Exists");
     return;
   }
